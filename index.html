@@ -379,13 +379,13 @@
       <div class="profile-card">
         <img 
           class="profile-photo" 
-          src="https://cdn.phototourl.com/free/2026-09-21-5cb3d8e4-1299-4335-af3b-bbb5abce93a4.jpg" 
-          alt="Adam Pořízka" 
+          src="https://cdn.imagetourls.com/uploads/tyImg/ImGlIV2C.jpg" 
+          alt="Jakub Štěpánek" 
           onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80';"
         />
         <div class="profile-info">
-          <h2>Adam Pořízka</h2>
-          <p><strong>Narozen:</strong> 20.09.2013</p>
+          <h2>Jakub Štěpánek</h2>
+          <p><strong>Narozen:</strong> 09.10.2013</p>
           <p><strong>Pozice:</strong> Strojvůdce</p>
           <span id="statusBadge" class="badge badge-offline">Nepřihlášen</span>
         </div>
@@ -451,11 +451,11 @@
   <div id="loginModal" class="modal-overlay hidden">
     <div class="modal">
       <h3>Přihlášení strojvůdce</h3>
-      <div id="loginError" class="error-msg">Nespávné jméno nebo heslo!</div>
+      <div id="loginError" class="error-msg">Nesprávné jméno nebo heslo!</div>
       <form onsubmit="submitLogin(event)">
         <div class="form-group">
           <label for="username">Jméno:</label>
-          <input type="text" id="username" value="Adam Pořízka" required>
+          <input type="text" id="username" value="Jakub Štěpánek" required>
         </div>
         <div class="form-group">
           <label for="password">Heslo:</label>
@@ -470,9 +470,9 @@
   </div>
 
   <script>
-    const STORAGE_KEY_CATS = 'cd_employee_categories_v2';
-    const STORAGE_KEY_TRAINS = 'cd_employee_trains_v2';
-    const STORAGE_KEY_RIDES = 'cd_employee_rides_v2';
+    const STORAGE_KEY_CATS = 'cd_employee_categories_jakub';
+    const STORAGE_KEY_TRAINS = 'cd_employee_trains_jakub';
+    const STORAGE_KEY_RIDES = 'cd_employee_rides_jakub';
 
     let isLoggedIn = false;
     let categories = [];
@@ -544,7 +544,7 @@
       const userVal = document.getElementById('username').value.trim();
       const passVal = document.getElementById('password').value.trim();
 
-      if (userVal.toLowerCase() === "adam pořízka" && passVal === "muzikus*22") {
+      if (userVal.toLowerCase() === "jakub štěpánek" && passVal === "Jebeti") {
         isLoggedIn = true;
         toggleModal(false);
         document.getElementById('password').value = "";
