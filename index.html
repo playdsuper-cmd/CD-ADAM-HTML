@@ -1,4 +1,4 @@
-<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
@@ -315,6 +315,7 @@
     .ride-time {
       font-size: 0.75rem;
       color: var(--text-muted);
+      margin-top: 4px;
     }
 
     /* Modal dialog */
@@ -392,7 +393,7 @@
 
       <!-- Informace pro nepřihlášené -->
       <div id="guestNotice" class="card info-box">
-         Pro správu kategorií a přidávání jízd se prosím přihlaste tlačítkem vpravo nahoře.
+         Pro správu kategorií, vlaků/vozidel a přidávání jízd se prosím přihlaste tlačítkem vpravo nahoře.
       </div>
 
       <!-- Administrační panel (po přihlášení) -->
@@ -408,12 +409,26 @@
           <div id="categoryList" class="item-list"></div>
         </div>
 
+        <!-- Sekce Vlaky / Lokomotivy, kterými jezdím -->
+        <div class="card">
+          <h3>Vlaky / Lokomotivy, kterými jezdím</h3>
+          <div class="form-group">
+            <input type="text" id="trainInput" placeholder="Např. 362 (Eso), RegioPanter, Vectron...">
+            <button class="btn-action" onclick="addTrain()">+ Přidat vlak / lokomotivu</button>
+          </div>
+          <div id="trainList" class="item-list"></div>
+        </div>
+
         <!-- Sekce Přidat Jízdu -->
         <div class="card">
           <h3>Přidat novou jízdu</h3>
           <div class="form-group">
             <label for="rideCatSelect">Kategorie:</label>
             <select id="rideCatSelect"></select>
+          </div>
+          <div class="form-group">
+            <label for="rideTrainSelect">Vlak / Lokomotiva:</label>
+            <select id="rideTrainSelect"></select>
           </div>
           <div class="form-group">
             <label for="rideRoute">Trasa / Vlak:</label>
@@ -456,13 +471,16 @@
 
   <script>
     const STORAGE_KEY_CATS = 'cd_employee_categories_v2';
+    const STORAGE_KEY_TRAINS = 'cd_employee_trains_v2';
     const STORAGE_KEY_RIDES = 'cd_employee_rides_v2';
 
     let isLoggedIn = false;
     let categories = [];
+    let trains = [];
     let rides = [];
 
     function loadStoredData() {
+      // Načtení kategorií
       const savedCats = localStorage.getItem(STORAGE_KEY_CATS);
       if (savedCats) {
         categories = JSON.parse(savedCats);
@@ -471,6 +489,16 @@
         saveCategories();
       }
 
+      // Načtení vlaků / lokomotiv
+      const savedTrains = localStorage.getItem(STORAGE_KEY_TRAINS);
+      if (savedTrains) {
+        trains = JSON.parse(savedTrains);
+      } else {
+        trains = ["Lokomotiva 362 (Eso)", "RegioPanter 640", "Siemens Vectron 193"];
+        saveTrains();
+      }
+
+      // Načtení jízd
       const savedRides = localStorage.getItem(STORAGE_KEY_RIDES);
       if (savedRides) {
         rides = JSON.parse(savedRides);
@@ -482,6 +510,10 @@
 
     function saveCategories() {
       localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
+    }
+
+    function saveTrains() {
+      localStorage.setItem(STORAGE_KEY_TRAINS, JSON.stringify(trains));
     }
 
     function saveRides() {
@@ -536,6 +568,7 @@
         guestNotice.classList.add('hidden');
         adminPanel.classList.remove('hidden');
         renderCategories();
+        renderTrains();
         renderRides();
       } else {
         authBtn.textContent = "Přihlásit";
@@ -616,6 +649,75 @@
       }
     }
 
+    /* --- VLAKY / LOKOMOTIVY --- */
+    function renderTrains() {
+      const listEl = document.getElementById('trainList');
+      const selectEl = document.getElementById('rideTrainSelect');
+      listEl.innerHTML = "";
+      selectEl.innerHTML = "";
+
+      if (trains.length === 0) {
+        listEl.innerHTML = "<p style='font-size:0.85rem; color:#888;'>Žádné uložené vlaky/lokomotivy.</p>";
+      }
+
+      trains.forEach((train, index) => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <span style="word-break: break-word; flex:1;">${train}</span>
+          <div class="item-actions">
+            <button class="btn-sm btn-edit" onclick="renameTrain(${index})">Upravit</button>
+            <button class="btn-sm btn-delete" onclick="deleteTrain(${index})">Smazat</button>
+          </div>
+        `;
+        listEl.appendChild(item);
+
+        const option = document.createElement('option');
+        option.value = train;
+        option.textContent = train;
+        selectEl.appendChild(option);
+      });
+    }
+
+    function addTrain() {
+      const input = document.getElementById('trainInput');
+      const val = input.value.trim();
+      if (val) {
+        trains.push(val);
+        input.value = "";
+        saveTrains();
+        renderTrains();
+      }
+    }
+
+    function renameTrain(index) {
+      const currentName = trains[index];
+      const newName = prompt("Zadejte nový název vlaku/lokomotivy:", currentName);
+      if (newName && newName.trim() !== "") {
+        const oldName = trains[index];
+        trains[index] = newName.trim();
+
+        rides.forEach(ride => {
+          if (ride.train === oldName) {
+            ride.train = newName.trim();
+          }
+        });
+
+        saveTrains();
+        saveRides();
+        renderTrains();
+        renderRides();
+      }
+    }
+
+    function deleteTrain(index) {
+      if (confirm(`Opravdu chcete smazat vlak/lokomotivu "${trains[index]}"?`)) {
+        trains.splice(index, 1);
+        saveTrains();
+        renderTrains();
+      }
+    }
+
     /* --- JÍZDY --- */
     function renderRides() {
       const listEl = document.getElementById('rideList');
@@ -636,6 +738,7 @@
           </div>
           <div class="ride-details">
             <div>Kategorie: <strong>${ride.category}</strong></div>
+            ${ride.train ? `<div>Vlak / Lokomotiva: <strong>${ride.train}</strong></div>` : ''}
             <div class="ride-time">Čas záznamu: ${ride.timestamp}</div>
           </div>
         `;
@@ -645,6 +748,7 @@
 
     function addRide() {
       const catSelect = document.getElementById('rideCatSelect');
+      const trainSelect = document.getElementById('rideTrainSelect');
       const routeInput = document.getElementById('rideRoute');
 
       if (!catSelect.value) {
@@ -663,6 +767,7 @@
       const newRide = {
         id: Date.now(),
         category: catSelect.value,
+        train: trainSelect.value || "Nespecifikováno",
         route: routeInput.value.trim(),
         timestamp: timestamp
       };
