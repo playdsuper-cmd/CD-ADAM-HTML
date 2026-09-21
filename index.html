@@ -49,11 +49,11 @@
       position: relative;
     }
 
-    /* Hlavička s odsazením vpravo proti překrývání ikonami */
+    /* Hlavička s pravým odsazením kvůli plovoucím ikonám */
     .header {
       background-color: var(--cd-navy);
       color: white;
-      padding: 12px 55px 12px 14px; /* Zvětšený pravý odstup pro plovoucí ikony */
+      padding: 12px 55px 12px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -155,7 +155,7 @@
       color: var(--text-muted);
     }
 
-    /* Štítky lokomotiv */
+    /* Štítky lokomotiv v profilu */
     .train-tags {
       margin-top: 6px;
       display: flex;
@@ -169,6 +169,12 @@
       color: var(--cd-navy);
     }
 
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
     .tag {
       display: inline-block;
       background-color: var(--cd-light-blue);
@@ -177,7 +183,6 @@
       border-radius: 12px;
       padding: 2px 8px;
       font-size: 0.75rem;
-      width: fit-content;
     }
 
     .badge {
@@ -253,7 +258,7 @@
       background-color: #006699;
     }
 
-    /* Seznamy */
+    /* Seznamy položek */
     .item-list {
       display: flex;
       flex-direction: column;
@@ -290,7 +295,7 @@
     .btn-edit { background-color: #FFC107; color: #222; }
     .btn-delete { background-color: var(--cd-red); color: white; }
 
-    /* Karta jízdy s opravou překrývání */
+    /* Karty jízd */
     .ride-item {
       display: flex;
       flex-direction: column;
@@ -426,9 +431,7 @@
 
           <div class="train-tags">
             <span class="train-tags-title">Moje vlaky / lokomotivy:</span>
-            <span class="tag">Lokomotiva 362 (Eso)</span>
-            <span class="tag">RegioPanter 640</span>
-            <span class="tag">Siemens Vectron 193</span>
+            <div id="profileTrainTags" class="tag-container"></div>
           </div>
         </div>
       </div>
@@ -438,7 +441,7 @@
          Pro správu kategorií, vlaků a jízd se přihlaste tlačítkem vpravo nahoře.
       </div>
 
-      <!-- Administrační panel (po přihlášení) -->
+      <!-- Administrační panel (zobrazí se po přihlášení) -->
       <div id="adminPanel" class="hidden">
         
         <!-- Sekce Správa Kategorií -->
@@ -449,6 +452,16 @@
             <button class="btn-action" onclick="addCategory()">+ Přidat kategorii</button>
           </div>
           <div id="categoryList" class="item-list"></div>
+        </div>
+
+        <!-- Sekce Správa Vlaků / Lokomotiv -->
+        <div class="card">
+          <h3>Správa vlaků / lokomotiv</h3>
+          <div class="form-group">
+            <input type="text" id="trainInput" placeholder="Název nového vlaku / lokomotivy...">
+            <button class="btn-action" onclick="addTrain()">+ Přidat vlak</button>
+          </div>
+          <div id="trainList" class="item-list"></div>
         </div>
 
         <!-- Sekce Přidat Jízdu -->
@@ -498,42 +511,68 @@
   </div>
 
   <script>
-    const STORAGE_KEY_CATS = 'cd_employee_categories_v2';
-    const STORAGE_KEY_RIDES = 'cd_employee_rides_v2';
+    const STORAGE_KEY_AUTH = 'cd_employee_auth_v3';
+    const STORAGE_KEY_CATS = 'cd_employee_categories_v3';
+    const STORAGE_KEY_TRAINS = 'cd_employee_trains_v3';
+    const STORAGE_KEY_RIDES = 'cd_employee_rides_v3';
 
     let isLoggedIn = false;
     let categories = [];
+    let trains = [];
     let rides = [];
 
+    // Načtení dat z localStorage
     function loadStoredData() {
-      const savedCats = localStorage.getItem(STORAGE_KEY_CATS);
-      if (savedCats) {
-        categories = JSON.parse(savedCats);
-      } else {
+      // 1. Načíst přihlášení
+      isLoggedIn = localStorage.getItem(STORAGE_KEY_AUTH) === 'true';
+
+      // 2. Načíst kategorie
+      try {
+        const savedCats = localStorage.getItem(STORAGE_KEY_CATS);
+        categories = savedCats ? JSON.parse(savedCats) : ["Osobní vlaky", "Rychlíky / Expresy"];
+      } catch (e) {
         categories = ["Osobní vlaky", "Rychlíky / Expresy"];
-        saveCategories();
       }
 
-      const savedRides = localStorage.getItem(STORAGE_KEY_RIDES);
-      if (savedRides) {
-        rides = JSON.parse(savedRides);
-      } else {
-        rides = [];
-        saveRides();
+      // 3. Načíst vlaky
+      try {
+        const savedTrains = localStorage.getItem(STORAGE_KEY_TRAINS);
+        trains = savedTrains ? JSON.parse(savedTrains) : ["Lokomotiva 362 (Eso)", "RegioPanter 640", "Siemens Vectron 193"];
+      } catch (e) {
+        trains = ["Lokomotiva 362 (Eso)", "RegioPanter 640", "Siemens Vectron 193"];
       }
+
+      // 4. Načíst jízdy
+      try {
+        const savedRides = localStorage.getItem(STORAGE_KEY_RIDES);
+        rides = savedRides ? JSON.parse(savedRides) : [];
+      } catch (e) {
+        rides = [];
+      }
+    }
+
+    // Ukládací funkce
+    function saveAuth() {
+      localStorage.setItem(STORAGE_KEY_AUTH, isLoggedIn ? 'true' : 'false');
     }
 
     function saveCategories() {
       localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
     }
 
+    function saveTrains() {
+      localStorage.setItem(STORAGE_KEY_TRAINS, JSON.stringify(trains));
+    }
+
     function saveRides() {
       localStorage.setItem(STORAGE_KEY_RIDES, JSON.stringify(rides));
     }
 
+    // Přihlášení / Odhlášení
     function handleAuthClick() {
       if (isLoggedIn) {
         isLoggedIn = false;
+        saveAuth();
         updateUI();
       } else {
         toggleModal(true);
@@ -557,6 +596,7 @@
 
       if (userVal.toLowerCase() === "adam pořízka" && passVal === "muzikus*22") {
         isLoggedIn = true;
+        saveAuth(); // Uloží přihlášení
         toggleModal(false);
         document.getElementById('password').value = "";
         updateUI();
@@ -571,6 +611,8 @@
       const guestNotice = document.getElementById('guestNotice');
       const adminPanel = document.getElementById('adminPanel');
 
+      renderProfileTrains();
+
       if (isLoggedIn) {
         authBtn.textContent = "Odhlásit";
         authBtn.classList.add('btn-logout');
@@ -579,6 +621,7 @@
         guestNotice.classList.add('hidden');
         adminPanel.classList.remove('hidden');
         renderCategories();
+        renderTrains();
         renderRides();
       } else {
         authBtn.textContent = "Přihlásit";
@@ -587,6 +630,76 @@
         badge.className = "badge badge-offline";
         guestNotice.classList.remove('hidden');
         adminPanel.classList.add('hidden');
+      }
+    }
+
+    /* --- VLAKY V PROFILU --- */
+    function renderProfileTrains() {
+      const container = document.getElementById('profileTrainTags');
+      container.innerHTML = "";
+      if (trains.length === 0) {
+        container.innerHTML = "<span style='font-size:0.75rem; color:#888;'>Žádné vlaky</span>";
+        return;
+      }
+      trains.forEach(t => {
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = t;
+        container.appendChild(tag);
+      });
+    }
+
+    /* --- SPRÁVA VLAKŮ --- */
+    function renderTrains() {
+      renderProfileTrains();
+      const listEl = document.getElementById('trainList');
+      listEl.innerHTML = "";
+
+      if (trains.length === 0) {
+        listEl.innerHTML = "<p style='font-size:0.85rem; color:#888;'>Žádné vlaky.</p>";
+        return;
+      }
+
+      trains.forEach((train, index) => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <span style="word-break: break-word; flex:1;">${train}</span>
+          <div class="item-actions">
+            <button class="btn-sm btn-edit" onclick="renameTrain(${index})">Upravit</button>
+            <button class="btn-sm btn-delete" onclick="deleteTrain(${index})">Smazat</button>
+          </div>
+        `;
+        listEl.appendChild(item);
+      });
+    }
+
+    function addTrain() {
+      const input = document.getElementById('trainInput');
+      const val = input.value.trim();
+      if (val) {
+        trains.push(val);
+        input.value = "";
+        saveTrains();
+        renderTrains();
+      }
+    }
+
+    function renameTrain(index) {
+      const currentName = trains[index];
+      const newName = prompt("Zadejte nový název vlaku:", currentName);
+      if (newName && newName.trim() !== "") {
+        trains[index] = newName.trim();
+        saveTrains();
+        renderTrains();
+      }
+    }
+
+    function deleteTrain(index) {
+      if (confirm(`Opravdu chcete smazat vlak "${trains[index]}"?`)) {
+        trains.splice(index, 1);
+        saveTrains();
+        renderTrains();
       }
     }
 
@@ -724,6 +837,7 @@
       }
     }
 
+    // Inicializace při načtení stránky
     loadStoredData();
     updateUI();
   </script>
