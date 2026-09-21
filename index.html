@@ -6,7 +6,8 @@
   <title>ČD Zaměstnanci - Portál strojvůdce</title>
   
   <!-- Favikona ČD -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230088CC'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='%23FFFFFF' font-family='sans-serif' font-weight='bold' font-size='30'%3EČD%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230088CC'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='%23FFFFFF' font-family='sans-serif' font-weight='bold' font-size='28'%3EČD%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230088CC'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' fill='%23FFFFFF' font-family='sans-serif' font-weight='bold' font-size='28'%3EČD%3C/text%3E%3C/svg%3E">
 
   <style>
     :root {
@@ -35,6 +36,7 @@
       justify-content: center;
       min-height: 100vh;
       color: var(--text-dark);
+      overflow-x: hidden;
     }
 
     /* Mobilní kontejner */
@@ -49,11 +51,11 @@
       position: relative;
     }
 
-    /* Hlavička s pravým odsazením kvůli plovoucím ikonám */
+    /* Hlavička s klasickým vyrovnaným odsazením */
     .header {
       background-color: var(--cd-navy);
       color: white;
-      padding: 12px 55px 12px 14px;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -117,7 +119,6 @@
       gap: 12px;
       align-items: flex-start;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      border-left: 5px solid var(--cd-blue);
     }
 
     .profile-photo-container {
@@ -301,9 +302,9 @@
       flex-direction: column;
       gap: 8px;
       background-color: var(--cd-light-blue);
-      border-left: 4px solid var(--cd-blue);
       padding: 12px;
       border-radius: 8px;
+      border: 1px solid #C0E2F5;
     }
 
     .ride-header {
@@ -596,7 +597,7 @@
 
       if (userVal.toLowerCase() === "adam pořízka" && passVal === "muzikus*22") {
         isLoggedIn = true;
-        saveAuth(); // Uloží přihlášení
+        saveAuth();
         toggleModal(false);
         document.getElementById('password').value = "";
         updateUI();
@@ -837,7 +838,7 @@
       }
     }
 
-    // Inicializace při načtení stránky
+    // Inicializace
     loadStoredData();
     updateUI();
   </script>
